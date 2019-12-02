@@ -1,3 +1,7 @@
+// Heroku config: https://github.com/heroku/heroku-buildpack-go
+// +heroku goVersion go1.13
+// +heroku install
+
 module github.com/sosedoff/github-events
 
 go 1.13
