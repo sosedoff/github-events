@@ -125,11 +125,18 @@ func main() {
 	var filterType string
 	var pretty bool
 	var saveFiles bool
+	var endpoint string
 
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
 	flag.BoolVar(&saveFiles, "save", false, "Save each event into separate file")
+	flag.StringVar(&endpoint, "endpoint", "", "Set custom server endpoint")
 	flag.Parse()
+
+	if endpoint != "" {
+		proxyEndpoint = endpoint
+		reEventHook = regexp.MustCompile(proxyEndpoint + `/(.*)`)
+	}
 
 	log.Println("Configuring Github API client")
 	client, err := githubClientFromEnv()
