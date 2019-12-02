@@ -109,6 +109,17 @@ func startWebsocketPing(conn *websocket.Conn, done chan bool) {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "server" {
+		addr := getListenAddr("5000")
+		server := newServer()
+
+		log.Println("Starting server on", addr)
+		if err := server.Run(addr); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
 	log.Println("Configuring Github API client")
 	client, err := githubClientFromEnv()
 	if err != nil {
