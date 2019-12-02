@@ -12,31 +12,45 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var (
-	defaultOriginHandler = func(r *http.Request) bool {
-		return true
-	}
+type server struct {
+	clients     map[*websocket.Conn]string
+	clientsLock sync.Mutex
+}
 
+var (
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:   1024,
 		WriteBufferSize:  1024,
 		HandshakeTimeout: time.Second * 5,
-		CheckOrigin:      defaultOriginHandler,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
-
-	listeners     = map[string][]*websocket.Conn{}
-	listenersLock = sync.Mutex{}
 )
 
-func getListenAddr(port string) string {
-	listenPort := os.Getenv("PORT")
-	if listenPort == "" {
-		listenPort = port
+func (s *server) broadcast(key string, message interface{}) {
+	s.clientsLock.Lock()
+	for clientConn, clientKey := range s.clients {
+		if clientKey == key {
+			clientConn.WriteJSON(message)
+		}
 	}
-	return "0.0.0.0:" + listenPort
+	s.clientsLock.Unlock()
 }
 
-func handleEvent(c *gin.Context) {
+func (s *server) addClient(conn *websocket.Conn, key string) {
+	s.clientsLock.Lock()
+	s.clients[conn] = key
+	s.clientsLock.Unlock()
+}
+
+func (s *server) removeClient(conn *websocket.Conn, key string) {
+	s.clientsLock.Lock()
+	delete(s.clients, conn)
+	s.clientsLock.Unlock()
+}
+
+func (s *server) handleEvent(c *gin.Context) {
 	key := c.Param("key")
 
 	// Must be coming from Github
@@ -60,24 +74,14 @@ func handleEvent(c *gin.Context) {
 		return
 	}
 
-	if len(listeners) == 0 {
-		return
+	if len(s.clients) > 0 {
+		go s.broadcast(key, gin.H{"event": event, "payload": msg})
 	}
-
-	go func() {
-		msg := gin.H{"event": event, "payload": msg}
-
-		listenersLock.Lock()
-		for _, l := range listeners[key] {
-			l.WriteJSON(msg)
-		}
-		listenersLock.Unlock()
-	}()
 
 	c.JSON(200, gin.H{"accepted": true})
 }
 
-func handleListen(c *gin.Context) {
+func (s *server) handleListen(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("connection upgrade error:", err)
@@ -87,13 +91,8 @@ func handleListen(c *gin.Context) {
 
 	key := c.Param("key")
 
-	listenersLock.Lock()
-	if listeners[key] == nil {
-		listeners[key] = []*websocket.Conn{conn}
-	} else {
-		listeners[key] = append(listeners[key], conn)
-	}
-	listenersLock.Unlock()
+	s.addClient(conn, key)
+	defer s.removeClient(conn, key)
 
 	for {
 		if _, _, err := conn.ReadMessage(); err != nil {
@@ -101,23 +100,27 @@ func handleListen(c *gin.Context) {
 			break
 		}
 	}
+}
 
-	listenersLock.Lock()
-	newlisteners := []*websocket.Conn{}
-	for _, l := range listeners[key] {
-		if l != conn {
-			newlisteners = append(newlisteners, l)
-		}
+func getListenAddr(port string) string {
+	listenPort := os.Getenv("PORT")
+	if listenPort == "" {
+		listenPort = port
 	}
-	listeners[key] = newlisteners
-	listenersLock.Unlock()
+	return "0.0.0.0:" + listenPort
 }
 
 func newServer() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
+	srv := server{
+		clients:     map[*websocket.Conn]string{},
+		clientsLock: sync.Mutex{},
+	}
+
 	router := gin.Default()
-	router.POST("/:key", handleEvent)
-	router.GET("/:key", handleListen)
+	router.POST("/:key", srv.handleEvent)
+	router.GET("/:key", srv.handleListen)
+
 	return router
 }
