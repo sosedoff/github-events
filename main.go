@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -120,6 +121,11 @@ func main() {
 		return
 	}
 
+	var filterType string
+
+	flag.StringVar(&filterType, "only", "", "Filter events by type")
+	flag.Parse()
+
 	log.Println("Configuring Github API client")
 	client, err := githubClientFromEnv()
 	if err != nil {
@@ -214,7 +220,13 @@ func main() {
 			}
 
 			log.Println("Received event:", message.Event)
-			fmt.Printf("%s\n", data)
+
+			if filterType != "" && message.Event != filterType {
+				log.Println("Skipped:", message.Event)
+				continue
+			}
+
+			fmt.Printf("%s", data)
 		}
 	}()
 
