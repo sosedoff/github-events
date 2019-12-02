@@ -17,10 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jdxcode/netrc"
-
 	"github.com/google/go-github/github"
 	"github.com/gorilla/websocket"
+	"github.com/jdxcode/netrc"
 	"golang.org/x/oauth2"
 )
 
@@ -169,10 +168,7 @@ func main() {
 		}
 	}()
 
-	log.Println("Listening to events")
-
 	wsURL := strings.Replace(hookURL, "https:", "wss:", 1)
-
 	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -185,6 +181,7 @@ func main() {
 	}()
 	go startWebsocketPing(conn, pingClose)
 
+	log.Println("Listening to events")
 	go func() {
 		var message = struct {
 			Event string `json:"event"`
