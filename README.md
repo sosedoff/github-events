@@ -5,8 +5,9 @@ Utility to listen to Github events for a given repository
 ## Overview
 
 `github-events` utility will create a temporary webhook for your Github repository
-and print out all event payloads as the come in the real time. Once the process is
-stopped the temporary webhook is destroyed. 
+and print out all event payloads as they come in the real time. Once the process is
+stopped the temporary webhook is destroyed. This is super useful when testing Github
+events as there's no need to setup anything (endpoints, webhook receivers, etc).
 
 ## Installation
 
@@ -47,6 +48,8 @@ Usage of github-events:
     	Filter events by type
   -pretty
     	Pretty print JSON
+  -save
+    	Save each event into separate file
 ```
 
 Some of the use cases:
@@ -63,4 +66,8 @@ github-events > events.log
 
 # Filter by event type
 github-events -only=push
+
+# Save each event to a file.
+# They are still printed out to STDOUT.
+github-events -save -pretty
 ```

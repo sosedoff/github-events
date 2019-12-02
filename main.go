@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -123,9 +124,11 @@ func main() {
 
 	var filterType string
 	var pretty bool
+	var saveFiles bool
 
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
+	flag.BoolVar(&saveFiles, "save", false, "Save each event into separate file")
 	flag.Parse()
 
 	log.Println("Configuring Github API client")
@@ -230,16 +233,20 @@ func main() {
 			}
 
 			if pretty {
-				prettyData, err := json.MarshalIndent(message, "", "  ")
+				newdata, err := json.MarshalIndent(message, "", "  ")
 				if err == nil {
-					fmt.Printf("%s", string(prettyData))
-					continue
-				} else {
-					log.Println("JSON indent error:", err)
+					data = newdata
 				}
 			}
 
 			fmt.Printf("%s", data)
+
+			if saveFiles {
+				path := fmt.Sprintf("%v.%s.json", time.Now().UnixNano(), message.Event)
+				if err := ioutil.WriteFile(path, data, 0666); err != nil {
+					log.Println("File save error:", err)
+				}
+			}
 		}
 	}()
 
