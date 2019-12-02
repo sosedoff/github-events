@@ -41,17 +41,22 @@ machine api.github.com
 
 ## Usage
 
-Start with command under github project:
-
-```bash
-github-events
+```
+Usage of github-events:
+  -only string
+    	Filter events by type
+  -pretty
+    	Pretty print JSON
 ```
 
 Some of the use cases:
 
 ```bash
-# Pipe to jq for pretty printing
+# Pipe to jq for pretty printing and colorization
 github-events | jq
+
+# Or use internal pretty print option
+github-events -pretty
 
 # Save to file
 github-events > events.log
