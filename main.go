@@ -122,8 +122,10 @@ func main() {
 	}
 
 	var filterType string
+	var pretty bool
 
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
+	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
 	flag.Parse()
 
 	log.Println("Configuring Github API client")
@@ -201,7 +203,8 @@ func main() {
 	log.Println("Listening to events")
 	go func() {
 		var message = struct {
-			Event string `json:"event"`
+			Event   string          `json:"event"`
+			Payload json.RawMessage `json:"payload"`
 		}{}
 
 		for {
@@ -224,6 +227,16 @@ func main() {
 			if filterType != "" && message.Event != filterType {
 				log.Println("Skipped:", message.Event)
 				continue
+			}
+
+			if pretty {
+				prettyData, err := json.MarshalIndent(message, "", "  ")
+				if err == nil {
+					fmt.Printf("%s", string(prettyData))
+					continue
+				} else {
+					log.Println("JSON indent error:", err)
+				}
 			}
 
 			fmt.Printf("%s", data)
