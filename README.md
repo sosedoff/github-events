@@ -8,6 +8,14 @@ Utility to listen to Github events for a given repository
 and print out all event payloads as the come in the real time. Once the process is
 stopped the temporary webhook is destroyed. 
 
+## Installation
+
+If you have Go installed locally, run:
+
+```
+go get github.com/sosedoff/github-events
+```
+
 ## Configuration
 
 There are two ways how you can configure the `github-events`:
