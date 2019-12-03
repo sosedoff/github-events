@@ -2,3 +2,5 @@ DS_Store
 *.log
 *.json
 github-events
+bin
+bin/*
