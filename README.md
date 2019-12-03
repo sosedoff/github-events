@@ -23,6 +23,8 @@ If you have Go installed locally, run:
 go get github.com/sosedoff/github-events
 ```
 
+Or visit [Releases](https://github.com/sosedoff/github-events/releases) page to grab a binary.
+
 ## Configuration
 
 There are two ways how you can configure the `github-events`:
