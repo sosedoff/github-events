@@ -54,8 +54,6 @@ machine api.github.com
 Usage of github-events:
   -endpoint string
     	Set custom server endpoint
-  -forward string
-    	Send events to HTTP server running on this port
   -only string
     	Filter events by type
   -pretty
@@ -84,12 +82,12 @@ github-events -only=push
 github-events -save -pretty
 ```
 
-You can also forward event data to a local HTTP server:
+You can also forward event data to a local HTTP endpoint:
 
 ```bash
 # lets say you have an app running on localhost:5000
 # forward requests by running this command
-github-events -forward=5000
+github-events http://locahost:5000/events
 ```
 
 While the event proxy server is hosted on Heroku, you can run the server locally:

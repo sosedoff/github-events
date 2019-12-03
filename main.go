@@ -118,10 +118,8 @@ func startWebsocketPing(conn *websocket.Conn, done chan bool) {
 	}
 }
 
-func forwardMessage(port string, message Message) {
-	url := fmt.Sprintf("http://localhost:%v", port)
+func forwardMessage(url string, message Message) {
 	body := bytes.NewReader(message.Payload)
-
 	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
 		log.Println("Request setup error:", err)
@@ -159,14 +157,17 @@ func main() {
 	var pretty bool
 	var saveFiles bool
 	var endpoint string
-	var forwardPort string
+	var forwardURL string
 
-	flag.StringVar(&forwardPort, "forward", "", "Send events to HTTP server running on this port")
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
 	flag.BoolVar(&saveFiles, "save", false, "Save each event into separate file")
 	flag.StringVar(&endpoint, "endpoint", "", "Set custom server endpoint")
 	flag.Parse()
+
+	if len(os.Args) > 1 {
+		forwardURL = os.Args[1]
+	}
 
 	if endpoint != "" {
 		proxyEndpoint = endpoint
@@ -287,8 +288,8 @@ func main() {
 				}
 			}
 
-			if forwardPort != "" {
-				go forwardMessage(forwardPort, message)
+			if forwardURL != "" {
+				go forwardMessage(forwardURL, message)
 			}
 		}
 	}()
