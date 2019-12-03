@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -33,6 +34,12 @@ var (
 	reRepoSSH   = regexp.MustCompile(`github.com[:/](.+)/(.+).git$`)
 	reEventHook = regexp.MustCompile(proxyEndpoint + `/(.*)`)
 )
+
+// Message contains github event data
+type Message struct {
+	Event   string          `json:"event"`
+	Payload json.RawMessage `json:"payload"`
+}
 
 // randomHex returns a random hex string
 func randomHex(n int) (string, error) {
@@ -111,6 +118,31 @@ func startWebsocketPing(conn *websocket.Conn, done chan bool) {
 	}
 }
 
+func forwardMessage(port string, message Message) {
+	url := fmt.Sprintf("http://localhost:%v", port)
+	body := bytes.NewReader(message.Payload)
+
+	req, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		log.Println("Request setup error:", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-GitHub-Delivery", "1")
+	req.Header.Set("X-Github-Event", message.Event)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println("Request error:", err)
+		return
+	}
+	ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	log.Println("Forwarded response:", resp.StatusCode)
+}
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "server" {
 		addr := getListenAddr("5000")
@@ -127,7 +159,9 @@ func main() {
 	var pretty bool
 	var saveFiles bool
 	var endpoint string
+	var forwardPort string
 
+	flag.StringVar(&forwardPort, "forward", "", "Send events to HTTP server running on this port")
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
 	flag.BoolVar(&saveFiles, "save", false, "Save each event into separate file")
@@ -213,10 +247,7 @@ func main() {
 
 	log.Println("Listening to events")
 	go func() {
-		var message = struct {
-			Event   string          `json:"event"`
-			Payload json.RawMessage `json:"payload"`
-		}{}
+		var message Message
 
 		for {
 			mtype, data, err := conn.ReadMessage()
@@ -254,6 +285,10 @@ func main() {
 				if err := ioutil.WriteFile(path, data, 0666); err != nil {
 					log.Println("File save error:", err)
 				}
+			}
+
+			if forwardPort != "" {
+				go forwardMessage(forwardPort, message)
 			}
 		}
 	}()
