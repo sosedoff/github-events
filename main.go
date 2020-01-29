@@ -141,18 +141,18 @@ func forwardMessage(url string, message Message) {
 	log.Println("Forwarded response:", resp.StatusCode)
 }
 
-func main() {
-	if len(os.Args) > 1 && os.Args[1] == "server" {
-		addr := getListenAddr("5000")
-		server := newServer()
+func startServer() {
+	addr := getListenAddr("PORT", "5000")
+	server := newServer()
 
-		log.Println("Starting server on", addr)
-		if err := server.Run(addr); err != nil {
-			log.Fatal(err)
-		}
-		return
+	log.Println("Starting server on", addr)
+	if err := server.Run(addr); err != nil {
+		log.Fatal(err)
 	}
+}
 
+func main() {
+	var runServer bool
 	var repoName string
 	var filterType string
 	var pretty bool
@@ -160,6 +160,7 @@ func main() {
 	var endpoint string
 	var forwardURL string
 
+	flag.BoolVar(&runServer, "server", false, "Start server")
 	flag.StringVar(&repoName, "repo", "", "Repository name (namespace/repo)")
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
@@ -167,6 +168,11 @@ func main() {
 	flag.StringVar(&endpoint, "endpoint", "", "Set custom server endpoint")
 	flag.StringVar(&forwardURL, "forward", "", "URL to forward events to")
 	flag.Parse()
+
+	if runServer {
+		startServer()
+		return
+	}
 
 	if endpoint != "" {
 		proxyEndpoint = endpoint

@@ -102,8 +102,8 @@ func (s *server) handleListen(c *gin.Context) {
 	}
 }
 
-func getListenAddr(port string) string {
-	listenPort := os.Getenv("PORT")
+func getListenAddr(key string, port string) string {
+	listenPort := os.Getenv(key)
 	if listenPort == "" {
 		listenPort = port
 	}
