@@ -15,18 +15,8 @@ import (
 type server struct {
 	clients     map[*websocket.Conn]string
 	clientsLock sync.Mutex
+	upgrader    websocket.Upgrader
 }
-
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:   1024,
-		WriteBufferSize:  1024,
-		HandshakeTimeout: time.Second * 5,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-)
 
 func (s *server) broadcast(key string, message interface{}) {
 	s.clientsLock.Lock()
@@ -82,7 +72,7 @@ func (s *server) handleEvent(c *gin.Context) {
 }
 
 func (s *server) handleListen(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := s.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("connection upgrade error:", err)
 		return
@@ -116,6 +106,14 @@ func newServer() *gin.Engine {
 	srv := server{
 		clients:     map[*websocket.Conn]string{},
 		clientsLock: sync.Mutex{},
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:   1024,
+			WriteBufferSize:  1024,
+			HandshakeTimeout: time.Second * 5,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 
 	router := gin.Default()
