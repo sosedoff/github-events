@@ -1,1 +1,1 @@
-web: github-events server
+web: github-events -server
