@@ -51,13 +51,17 @@ machine api.github.com
 ## Usage
 
 ```
-Usage of github-events:
+Usage of ./github-events:
   -endpoint string
     	Set custom server endpoint
+  -forward string
+    	URL to forward events to
   -only string
     	Filter events by type
   -pretty
     	Pretty print JSON
+  -repo string
+    	Repository name (namespace/repo)
   -save
     	Save each event into separate file
 ```
@@ -87,11 +91,17 @@ You can also forward event data to a local HTTP endpoint:
 ```bash
 # lets say you have an app running on localhost:5000
 # forward requests by running this command
-github-events http://locahost:5000/events
+github-events -forward http://locahost:5000/events
 ```
 
 While the event proxy server is hosted on Heroku, you can run the server locally:
 
-```
+```bash
 github-events server
+```
+
+To watch events from a repository that's not cloned in the same directory:
+
+```bash
+github-events -repo yourname/reponame
 ```

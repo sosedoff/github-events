@@ -153,21 +153,20 @@ func main() {
 		return
 	}
 
+	var repoName string
 	var filterType string
 	var pretty bool
 	var saveFiles bool
 	var endpoint string
 	var forwardURL string
 
+	flag.StringVar(&repoName, "repo", "", "Repository name (namespace/repo)")
 	flag.StringVar(&filterType, "only", "", "Filter events by type")
 	flag.BoolVar(&pretty, "pretty", false, "Pretty print JSON")
 	flag.BoolVar(&saveFiles, "save", false, "Save each event into separate file")
 	flag.StringVar(&endpoint, "endpoint", "", "Set custom server endpoint")
+	flag.StringVar(&forwardURL, "forward", "", "URL to forward events to")
 	flag.Parse()
-
-	if len(os.Args) > 1 {
-		forwardURL = os.Args[1]
-	}
 
 	if endpoint != "" {
 		proxyEndpoint = endpoint
@@ -180,10 +179,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Inspecting git remote")
-	owner, repo, err := getRepo("origin")
-	if err != nil {
-		log.Fatal(err)
+	var owner, repo string
+	if repoName == "" {
+		log.Println("Inspecting git remote")
+		owner, repo, err = getRepo("origin")
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		chunks := strings.SplitN(repoName, "/", 2)
+		if len(chunks) < 2 {
+			log.Fatal("Invalid repo name")
+		}
+		owner = chunks[0]
+		repo = chunks[1]
 	}
 
 	log.Println("Fetching existing webhooks")
