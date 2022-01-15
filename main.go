@@ -135,10 +135,18 @@ func forwardMessage(url string, message Message) {
 		log.Println("Request error:", err)
 		return
 	}
-	ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	defer resp.Body.Close()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Body read error:", err)
+	}
 
 	log.Println("Forwarded response:", resp.StatusCode)
+
+	if resp.StatusCode >= 300 {
+		log.Printf("Forwarded response body:\n%s\n", respBody)
+	}
 }
 
 func startServer() {
