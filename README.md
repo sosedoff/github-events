@@ -1,6 +1,6 @@
 # github-events
 
-Utility to listen to Github events for a given repository
+A CLI tool to subscribe to to Github events from your local repository
 
 ## Overview
 
