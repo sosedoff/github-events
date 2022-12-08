@@ -1,9 +1,9 @@
 // Heroku config: https://github.com/heroku/heroku-buildpack-go
-// +heroku goVersion go1.17
+// +heroku goVersion go1.19
 
 module github.com/sosedoff/github-events
 
-go 1.17
+go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.7.7
