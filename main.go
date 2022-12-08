@@ -28,7 +28,7 @@ import (
 
 var (
 	version       = "0.3.0"
-	proxyEndpoint = "https://github-events-proxy.herokuapp.com"
+	proxyEndpoint = "https://github-events.fly.dev"
 
 	reRepoHTTP  = regexp.MustCompile(`^https?://.*github.com.*/(.+)/(.+?)(?:.git)?$`)
 	reRepoSSH   = regexp.MustCompile(`github.com[:/](.+)/(.+).git$`)
