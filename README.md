@@ -9,8 +9,8 @@ and print out all event payloads as they come in the real time. Once the process
 stopped the temporary webhook is destroyed. This is super useful when testing Github
 events as there's no need to setup anything (endpoints, webhook receivers, etc).
 
-It works by creating a temporary webhook for the repository that points to an 
-URL like `https://github-events-proxy.herokuapp.com/key`, where `key` is a random
+It works by creating a temporary webhook for the repository that points to an
+URL like `https://github-events.fly.dev/key`, where `key` is a random
 token. Github will be sending all events to that URL moving forward. Then utility
 connects to the given URL using Websocket prototol and receives all events in JSON
 format. Server part is open, check `server.go` file.
