@@ -1,6 +1,6 @@
 # github-events
 
-A CLI tool to subscribe to to Github events from your local repository
+A CLI tool to subscribe to Github events from your local repository
 
 ## Overview
 
@@ -12,7 +12,7 @@ events as there's no need to setup anything (endpoints, webhook receivers, etc).
 It works by creating a temporary webhook for the repository that points to an
 URL like `https://github-events.fly.dev/key`, where `key` is a random
 token. Github will be sending all events to that URL moving forward. Then utility
-connects to the given URL using Websocket prototol and receives all events in JSON
+connects to the given URL using Websocket protocol and receives all events in JSON
 format. Server part is open, check `server.go` file.
 
 ## Installation
